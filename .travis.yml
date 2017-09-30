@@ -1,0 +1,11 @@
+python:
+
+  - "3.6"
+
+script:
+
+  - nose
+
+notifications:
+  email:
+    on_success: never

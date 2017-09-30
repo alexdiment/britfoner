@@ -1,0 +1,218 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>britfoner.g2p &#8212; britfoner  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for britfoner.g2p</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">Sequence to sequence model building and training</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span>
+
+<span class="kn">from</span> <span class="nn">keras.callbacks</span> <span class="k">import</span> <span class="n">ModelCheckpoint</span>
+<span class="kn">from</span> <span class="nn">keras.optimizers</span> <span class="k">import</span> <span class="n">Adam</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">argmax</span>
+<span class="kn">from</span> <span class="nn">seq2seq.models</span> <span class="k">import</span> <span class="n">AttentionSeq2Seq</span>
+
+<span class="kn">from</span> <span class="nn">britfoner</span> <span class="k">import</span> <span class="n">Seq</span><span class="p">,</span> <span class="n">_symbols</span><span class="p">,</span> <span class="n">Inv_Alphabet</span>
+
+
+<div class="viewcode-block" id="attention_g2p_model_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.g2p.attention_g2p_model_from">[docs]</a><span class="k">def</span> <span class="nf">attention_g2p_model_from</span><span class="p">(</span><span class="n">input_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                             <span class="n">input_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                             <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                             <span class="n">output_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                             <span class="n">hidden_n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+                             <span class="n">dropout</span><span class="o">=.</span><span class="mi">1</span><span class="p">,</span>
+                             <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> \
+        <span class="o">-&gt;</span> <span class="n">AttentionSeq2Seq</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Creates a sequence to sequence model with attention</span>
+
+<span class="sd">    :param input_dim: number of symbols in input alphabet (including end, start and padding)</span>
+<span class="sd">    :param input_length: length of longest input sequence</span>
+<span class="sd">    :param output_dim: number of symbols in output alphabet (including end, start and padding)</span>
+<span class="sd">    :param output_length: length of longest output sequence</span>
+<span class="sd">    :param hidden_n: number of hidden units</span>
+<span class="sd">    :param dropout: dropout rate</span>
+<span class="sd">    :param depth: depth of rnn stack</span>
+<span class="sd">    :return: the created, compiled model</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">AttentionSeq2Seq</span><span class="p">(</span><span class="n">output_dim</span><span class="o">=</span><span class="n">output_dim</span><span class="p">,</span>
+                             <span class="n">output_length</span><span class="o">=</span><span class="n">output_length</span><span class="p">,</span>
+                             <span class="n">hidden_dim</span><span class="o">=</span><span class="n">hidden_n</span><span class="p">,</span>
+                             <span class="n">input_dim</span><span class="o">=</span><span class="n">input_dim</span><span class="p">,</span>
+                             <span class="n">input_length</span><span class="o">=</span><span class="n">input_length</span><span class="p">,</span>
+                             <span class="n">unroll</span><span class="o">=</span> <span class="n">dropout</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">,</span>
+                             <span class="n">dropout</span><span class="o">=</span> <span class="n">dropout</span><span class="p">,</span>
+                             <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s1">&#39;mse&#39;</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">Adam</span><span class="p">(</span><span class="n">lr</span><span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="n">decay</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="train_g2p"><a class="viewcode-back" href="../../britfoner.html#britfoner.g2p.train_g2p">[docs]</a><span class="k">def</span> <span class="nf">train_g2p</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">AttentionSeq2Seq</span><span class="p">,</span>
+              <span class="n">train_set</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">],</span>
+              <span class="n">val_set</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">],</span>
+              <span class="n">batch_n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+              <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+              <span class="n">callbacks</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AttentionSeq2Seq</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Trains given model</span>
+
+<span class="sd">    :param model: sequence to sequence model</span>
+<span class="sd">    :param train_set: training data as X, Y tuple of tensors</span>
+<span class="sd">    :param val_set: validation data as X, Y tuple of tensors</span>
+<span class="sd">    :param batch_n: batch size</span>
+<span class="sd">    :param epochs: number of epochs</span>
+<span class="sd">    :param callbacks: callbacks for keras training</span>
+<span class="sd">    :return: trained model</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">train_X</span><span class="p">,</span> <span class="n">train_Y</span> <span class="o">=</span> <span class="n">train_set</span>
+    <span class="n">val_X</span><span class="p">,</span> <span class="n">val_Y</span> <span class="o">=</span> <span class="n">val_set</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_X</span><span class="p">,</span> <span class="n">train_Y</span><span class="p">,</span>
+              <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">val_X</span><span class="p">,</span> <span class="n">val_Y</span><span class="p">),</span>
+              <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_n</span><span class="p">,</span>
+              <span class="n">epochs</span><span class="o">=</span><span class="n">epochs</span><span class="p">,</span>
+              <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">,</span>
+              <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="most_likely_sequence"><a class="viewcode-back" href="../../britfoner.html#britfoner.g2p.most_likely_sequence">[docs]</a><span class="k">def</span> <span class="nf">most_likely_sequence</span><span class="p">(</span><span class="n">y_hat</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">inv_alphabet</span><span class="p">:</span> <span class="n">Inv_Alphabet</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Seq</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns the most likely sequence for the given prediced output vector. The decoding</span>
+<span class="sd">    algorithm is greedy, picking the highest scored symbol in the output</span>
+
+<span class="sd">    Any padding symbols are removed</span>
+
+<span class="sd">    :param y_hat: the predicted output vector</span>
+<span class="sd">    :param inv_alphabet: a sorted list of symbols representing the output alphabet</span>
+<span class="sd">    :return: the predicted output sequence</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">inv_alphabet</span><span class="p">[</span><span class="n">argmax</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">y_hat</span> <span class="k">if</span> <span class="n">inv_alphabet</span><span class="p">[</span><span class="n">argmax</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_symbols</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WER_ModelCheckpoint"><a class="viewcode-back" href="../../britfoner.html#britfoner.g2p.WER_ModelCheckpoint">[docs]</a><span class="k">class</span> <span class="nc">WER_ModelCheckpoint</span><span class="p">(</span><span class="n">ModelCheckpoint</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Ensures saving of training model is done every time the Word Error Rate (WER)</span>
+<span class="sd">    improves. This allows the final saved model to be the best one according to the</span>
+<span class="sd">    WER metric</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;val_loss&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">save_best_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">save_weights_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">period</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">filepath</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="n">monitor</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                         <span class="n">save_best_only</span><span class="o">=</span><span class="n">save_best_only</span><span class="p">,</span> <span class="n">save_weights_only</span><span class="o">=</span><span class="n">save_weights_only</span><span class="p">,</span>
+                         <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">period</span><span class="o">=</span><span class="n">period</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="n">callback</span>
+
+    <span class="c1">#hack to ensure the monitored quantity is the WER rather than the loss/metric</span>
+<div class="viewcode-block" id="WER_ModelCheckpoint.on_epoch_end"><a class="viewcode-back" href="../../britfoner.html#britfoner.g2p.WER_ModelCheckpoint.on_epoch_end">[docs]</a>    <span class="k">def</span> <span class="nf">on_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">logs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">WER</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">logs</span><span class="p">)</span>
+        <span class="n">logs</span><span class="p">[</span><span class="s1">&#39;WER&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">WER</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">on_epoch_end</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">logs</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">britfoner</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../britfoner.html">britfoner package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../britfoner.html">britfoner</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

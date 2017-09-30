@@ -1,0 +1,334 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>britfoner.IO &#8212; britfoner  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for britfoner.IO</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">Functions to convert input/output data into tensors and viceversa</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">codecs</span> <span class="k">import</span> <span class="nb">open</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">keras.engine.training</span> <span class="k">import</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">argmax</span>
+<span class="kn">from</span> <span class="nn">seq2seq.models</span> <span class="k">import</span> <span class="n">AttentionSeq2Seq</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">train_test_split</span>
+
+<span class="kn">from</span> <span class="nn">britfoner</span> <span class="k">import</span> <span class="n">Seq</span><span class="p">,</span> <span class="n">Alphabet</span><span class="p">,</span> <span class="n">Inv_Alphabet</span><span class="p">,</span> <span class="n">Index</span><span class="p">,</span> <span class="n">_GAP</span><span class="p">,</span> <span class="n">_symbols</span><span class="p">,</span> <span class="n">_PREFIX</span><span class="p">,</span> <span class="n">_SUFFIX</span><span class="p">,</span> <span class="n">_MODEL_OUT</span>
+
+
+<div class="viewcode-block" id="dataset_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.dataset_from">[docs]</a><span class="k">def</span> <span class="nf">dataset_from</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">val_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">05</span><span class="p">,</span> <span class="n">random_state</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">)</span> \
+        <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">],</span> <span class="n">Index</span><span class="p">]:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Creates a dataset read in from the the given file name. The dataset</span>
+<span class="sd">    consists of rain/test input-output tensors plus an index</span>
+
+<span class="sd">    :param src: the file name with the data</span>
+<span class="sd">    :param val_size: the proportion in [0, 1] of data points used for validation</span>
+<span class="sd">    :param random_state: the seed for picking the validation set</span>
+<span class="sd">    :return: a dataset consisting of tensors and index, as a tuple</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">words</span><span class="p">,</span> <span class="n">sounds</span> <span class="o">=</span> <span class="n">items_from</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+    <span class="n">index</span> <span class="o">=</span> <span class="n">index_from</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">sounds</span><span class="p">)</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">all_encoded</span><span class="p">(</span><span class="n">padded</span><span class="p">(</span><span class="n">words</span><span class="p">),</span> <span class="n">index</span><span class="o">.</span><span class="n">letter</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">all_encoded</span><span class="p">(</span><span class="n">padded</span><span class="p">(</span><span class="n">sounds</span><span class="p">),</span> <span class="n">index</span><span class="o">.</span><span class="n">phone</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="n">val_size</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">),</span> <span class="n">index</span></div>
+
+
+<div class="viewcode-block" id="items_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.items_from">[docs]</a><span class="k">def</span> <span class="nf">items_from</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">Seq</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Seq</span><span class="p">]]:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Reads a sequence of inputs and outputs from a file</span>
+<span class="sd">    The file&#39;s format should be a line per data point, the input sequence made up</span>
+<span class="sd">    of symbols with no separator, followed by a comma, followed by the white-space</span>
+<span class="sd">    separated output sequence</span>
+
+<span class="sd">    :param src: the data file</span>
+<span class="sd">    :return: a tuple with the input and output sequences</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">in_file</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">to_tuple</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>  <span class="c1"># remove length condition</span>
+                     <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">in_file</span>
+                     <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">strip</span><span class="p">()])</span></div>
+
+
+<div class="viewcode-block" id="index_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.index_from">[docs]</a><span class="k">def</span> <span class="nf">index_from</span><span class="p">(</span><span class="n">words</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Seq</span><span class="p">],</span> <span class="n">sounds</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Seq</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Index</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Constructs an index given the input and output sequences</span>
+
+<span class="sd">    An index contains a number of datastructures necessary to encode and decode</span>
+<span class="sd">    the data</span>
+
+<span class="sd">    :param words: the input sequences</span>
+<span class="sd">    :param sounds: the output sequences</span>
+<span class="sd">    :return: an Index</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">word_to_sounds</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+    <span class="n">letters</span><span class="p">,</span> <span class="n">phones</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">_symbols</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="n">_symbols</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">sound</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">sounds</span><span class="p">):</span>
+        <span class="n">letters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+        <span class="n">phones</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sound</span><span class="p">)</span>
+        <span class="n">word_to_sounds</span><span class="p">[</span><span class="n">word</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sound</span><span class="p">)</span>
+
+    <span class="n">inv_letter_index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">letters</span><span class="p">))</span>
+    <span class="n">letter_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">letter</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">letter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inv_letter_index</span><span class="p">)}</span>
+    <span class="n">inv_phone_index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">phones</span><span class="p">))</span>
+    <span class="n">phone_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">phone</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">phone</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inv_phone_index</span><span class="p">)}</span>
+
+    <span class="k">return</span> <span class="n">Index</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">letter_index</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span>
+                 <span class="nb">len</span><span class="p">(</span><span class="n">phone_index</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">sounds</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span>
+                 <span class="n">letter_index</span><span class="p">,</span> <span class="n">inv_letter_index</span><span class="p">,</span>
+                 <span class="n">phone_index</span><span class="p">,</span> <span class="n">inv_phone_index</span><span class="p">,</span>
+                 <span class="n">word_to_sounds</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="padded"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.padded">[docs]</a><span class="k">def</span> <span class="nf">padded</span><span class="p">(</span><span class="n">seqs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Seq</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Seq</span><span class="p">]:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Pads all sequences to the length of the longest</span>
+
+<span class="sd">    :param seqs: the raw sequences</span>
+<span class="sd">    :return: the padded sequences</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">max_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">seqs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">bounded</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span> <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">seqs</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="all_encoded"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.all_encoded">[docs]</a><span class="k">def</span> <span class="nf">all_encoded</span><span class="p">(</span><span class="n">seqs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Seq</span><span class="p">],</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">Alphabet</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Encodes a list of strings into a tensor</span>
+
+<span class="sd">    :param seqs: alist of sequences as string tuples</span>
+<span class="sd">    :param alphabet: a mapping from character to index</span>
+<span class="sd">    :param reverse: true if the sequences should be encoded in reverse</span>
+<span class="sd">    :return: a 3-D tensor as a 3-D numpy array index by sequence, position and vector component</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">seqs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">seqs</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">len</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">seq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">seqs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">phone</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">seq</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">reverse</span> <span class="k">else</span> <span class="n">seq</span><span class="p">):</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">[</span><span class="n">phone</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="decoded"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.decoded">[docs]</a><span class="k">def</span> <span class="nf">decoded</span><span class="p">(</span><span class="n">seq_vec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">inv_alphabet</span><span class="p">:</span> <span class="n">Inv_Alphabet</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Seq</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Decodes a matrix representing a sequence into a tuple</span>
+
+<span class="sd">    :param seq_vec: sequence as 2D numpy array</span>
+<span class="sd">    :param inv_alphabet: sorted alphabet</span>
+<span class="sd">    :param reverse: True if the string should be reversed</span>
+<span class="sd">    :return: the decoded sequence as a tuple of strings</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">dec</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">inv_alphabet</span><span class="p">[</span><span class="n">argmax</span><span class="p">(</span><span class="n">vec</span><span class="p">)]</span> <span class="k">for</span> <span class="n">vec</span> <span class="ow">in</span> <span class="n">seq_vec</span>
+                <span class="k">if</span> <span class="n">inv_alphabet</span><span class="p">[</span><span class="n">argmax</span><span class="p">(</span><span class="n">vec</span><span class="p">)]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_symbols</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dec</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">reverse</span> <span class="k">else</span> <span class="n">dec</span></div>
+
+
+<div class="viewcode-block" id="padding_for"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.padding_for">[docs]</a><span class="k">def</span> <span class="nf">padding_for</span><span class="p">(</span><span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Seq</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Builds padding for sequences longer than :const:`MAX_LENGTH`</span>
+
+<span class="sd">    :param width: length of sequence</span>
+<span class="sd">    :param max_width:</span>
+<span class="sd">    :return: tuple containing 0 to ``max_width`` repetitions of the padding symbol</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">_GAP</span><span class="p">,)</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_width</span> <span class="o">-</span> <span class="n">width</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="bounded"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.bounded">[docs]</a><span class="k">def</span> <span class="nf">bounded</span><span class="p">(</span><span class="n">seq</span><span class="p">:</span> <span class="n">Seq</span><span class="p">,</span> <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Bounds sequence to help model understand where the it starts and where it ends. Addionally</span>
+<span class="sd">    it pads the sequence if its longer than :py:const:`MAX_LENGTH`</span>
+
+<span class="sd">    :param seq: sequence to be bounded</span>
+<span class="sd">    :param max_length: maximum sequence length</span>
+<span class="sd">    :return: a sequence with a prefix a suffix and a padding at the end</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">_PREFIX</span> <span class="o">+</span> <span class="n">seq</span> <span class="o">+</span> <span class="n">_SUFFIX</span> <span class="o">+</span> <span class="n">padding_for</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">),</span> <span class="n">max_length</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="dictionary_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.dictionary_from">[docs]</a><span class="k">def</span> <span class="nf">dictionary_from</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Seq</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="n">Seq</span><span class="p">]]:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    #</span>
+<span class="sd">    Returns a mapping from word to pronunciation(s)</span>
+
+<span class="sd">    :param src: file to read the dictionary data from</span>
+<span class="sd">    :return: a map of words to their pronunciations as Dict[Seq, Set[Seq]]</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">word_to_sounds</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">in_file</span><span class="p">:</span>
+
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">in_file</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">entry</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span> <span class="k">continue</span>
+
+            <span class="n">word</span><span class="p">,</span> <span class="n">sound</span> <span class="o">=</span> <span class="n">to_tuple</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="n">word_to_sounds</span><span class="p">[</span><span class="n">word</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sound</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">word_to_sounds</span></div>
+
+
+<div class="viewcode-block" id="indexes_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.indexes_from">[docs]</a><span class="k">def</span> <span class="nf">indexes_from</span><span class="p">(</span><span class="n">dictionary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Seq</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="n">Seq</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Alphabet</span><span class="p">,</span> <span class="n">Inv_Alphabet</span><span class="p">]:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    #</span>
+<span class="sd">    builds input and inverted output indexes for converting from/to text to vectors</span>
+
+<span class="sd">    :param dictionary: a word to proununciations mapping</span>
+<span class="sd">    :return: an input and an inverted output index as a tuple</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">letters</span><span class="p">,</span> <span class="n">phones</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">_symbols</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="n">_symbols</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">sounds</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+        <span class="n">letters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">sound</span> <span class="ow">in</span> <span class="n">sounds</span><span class="p">:</span>
+            <span class="n">phones</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sound</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="n">letter</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">letter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">letters</span><span class="p">))},</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">phones</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="model_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.model_from">[docs]</a><span class="k">def</span> <span class="nf">model_from</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Model</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    #</span>
+<span class="sd">    loads sequence to sequence model from file</span>
+<span class="sd">    :param src: model file name</span>
+<span class="sd">    :return: a model</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># uses model file name to set appropiate model parameters before loading model weights,</span>
+    <span class="c1"># this is workaround for a defect in seq2seq that prevents reading the whole model</span>
+    <span class="n">input_length</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">hidden_n</span><span class="p">,</span> <span class="n">output_length</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.h5&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">AttentionSeq2Seq</span><span class="p">(</span><span class="n">output_dim</span><span class="o">=</span><span class="n">output_dim</span><span class="p">,</span>
+                             <span class="n">output_length</span><span class="o">=</span><span class="n">output_length</span><span class="p">,</span>
+                             <span class="n">hidden_dim</span><span class="o">=</span><span class="n">hidden_n</span><span class="p">,</span>
+                             <span class="n">input_dim</span><span class="o">=</span><span class="n">input_dim</span><span class="p">,</span>
+                             <span class="n">input_length</span><span class="o">=</span><span class="n">input_length</span><span class="p">,</span>
+                             <span class="n">unroll</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                             <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">_MODEL_OUT</span><span class="p">,</span> <span class="n">src</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="to_tuple"><a class="viewcode-back" href="../../britfoner.html#britfoner.IO.to_tuple">[docs]</a><span class="k">def</span> <span class="nf">to_tuple</span><span class="p">(</span><span class="n">entry</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Seq</span><span class="p">,</span> <span class="n">Seq</span><span class="p">]:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    #</span>
+<span class="sd">    Converts a string containing an input, output sequence pair into a tuple of seqeunces</span>
+<span class="sd">    :param entry: the string containing the entry</span>
+<span class="sd">    :return: a tuple containing an input and an output sequence</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">())</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">britfoner</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../britfoner.html">britfoner package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../britfoner.html">britfoner</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

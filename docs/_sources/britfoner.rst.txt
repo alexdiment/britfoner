@@ -1,0 +1,62 @@
+britfoner package
+=================
+
+Submodules
+----------
+
+britfoner\.IO module
+--------------------
+
+.. automodule:: britfoner.IO
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+britfoner\.api module
+---------------------
+
+.. automodule:: britfoner.api
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+britfoner\.g2p module
+---------------------
+
+.. automodule:: britfoner.g2p
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+britfoner\.main module
+----------------------
+
+.. automodule:: britfoner.main
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+britfoner\.test\_IO module
+--------------------------
+
+.. automodule:: britfoner.test_IO
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+britfoner\.test\_api module
+---------------------------
+
+.. automodule:: britfoner.test_api
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: britfoner
+    :members:
+    :undoc-members:
+    :show-inheritance:

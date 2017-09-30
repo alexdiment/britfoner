@@ -1,0 +1,242 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>britfoner.main &#8212; britfoner  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for britfoner.main</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">script to train model</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+
+
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">keras.callbacks</span> <span class="k">import</span> <span class="n">EarlyStopping</span>
+<span class="kn">from</span> <span class="nn">keras.models</span> <span class="k">import</span> <span class="n">Model</span>
+
+<span class="kn">from</span> <span class="nn">britfoner</span> <span class="k">import</span> <span class="n">_UNSTRESSED_BRITFONE</span><span class="p">,</span> <span class="n">_MODEL_OUT</span>
+<span class="kn">from</span> <span class="nn">britfoner.IO</span> <span class="k">import</span> <span class="n">decoded</span><span class="p">,</span> <span class="n">dataset_from</span>
+<span class="kn">from</span> <span class="nn">britfoner.g2p</span> <span class="k">import</span> <span class="n">train_g2p</span><span class="p">,</span> <span class="n">most_likely_sequence</span><span class="p">,</span> \
+    <span class="n">attention_g2p_model_from</span><span class="p">,</span> <span class="n">WER_ModelCheckpoint</span>
+
+
+<div class="viewcode-block" id="main_seq_2_seq"><a class="viewcode-back" href="../../britfoner.html#britfoner.main.main_seq_2_seq">[docs]</a><span class="k">def</span> <span class="nf">main_seq_2_seq</span><span class="p">(</span><span class="n">data_src</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_UNSTRESSED_BRITFONE</span><span class="p">,</span> <span class="n">model_src</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Model</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Creates, trains and saves a sequence to sequence model</span>
+
+<span class="sd">    :param data_src: file containing data</span>
+<span class="sd">    :param model_src: file containing previously trained model, to start the training from</span>
+<span class="sd">    :return: the trained model together withe file name it has been saved to</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="p">(</span><span class="n">train_X</span><span class="p">,</span> <span class="n">val_X</span><span class="p">,</span> <span class="n">train_Y</span><span class="p">,</span> <span class="n">val_Y</span><span class="p">),</span> <span class="n">index</span> <span class="o">=</span> <span class="n">dataset_from</span><span class="p">(</span><span class="n">data_src</span><span class="p">,</span> <span class="n">val_size</span><span class="o">=.</span><span class="mi">01</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">attention_g2p_model_from</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">x_dim</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">x_n</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">y_dim</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">y_n</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=.</span><span class="mi">15</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">model_src</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">_MODEL_OUT</span><span class="p">,</span> <span class="n">model_src</span><span class="p">))</span>
+
+    <span class="n">on_epoch_end</span> <span class="o">=</span> <span class="n">epoch_publishing_fn_from</span><span class="p">(</span><span class="n">val_X</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">model_name_from</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">callbacks</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">EarlyStopping</span><span class="p">(</span><span class="n">patience</span><span class="o">=</span><span class="mi">35</span><span class="p">),</span>
+        <span class="n">WER_ModelCheckpoint</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">join</span><span class="p">(</span><span class="n">_MODEL_OUT</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span>
+                            <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;WER&#39;</span><span class="p">,</span>
+                            <span class="n">save_best_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">callback</span><span class="o">=</span><span class="n">on_epoch_end</span><span class="p">)]</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;starting training with a [{len(train_X)}/{len(val_X)}] training/validation split...&#39;</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">train_g2p</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="p">(</span><span class="n">train_X</span><span class="p">,</span> <span class="n">train_Y</span><span class="p">),</span> <span class="p">(</span><span class="n">val_X</span><span class="p">,</span> <span class="n">val_Y</span><span class="p">),</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;finished training.&#39;</span><span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">_MODEL_OUT</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+
+    <span class="n">end_publishing_fn_from</span><span class="p">(</span><span class="n">val_X</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">)(</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="model_name_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.main.model_name_from">[docs]</a><span class="k">def</span> <span class="nf">model_name_from</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Creates file name to save model to</span>
+
+<span class="sd">    :param model: the sequence to sequence model</span>
+<span class="sd">    :return: the file name</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">)</span>
+
+    <span class="nb">input</span><span class="p">,</span> <span class="n">hidden</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">output_shape</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">output_shape</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">output_shape</span>
+
+    <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{input[1]}</span><span class="s1">x</span><span class="si">{input[2]}</span><span class="s1">x</span><span class="si">{hidden[2]}</span><span class="s1">x</span><span class="si">{output[1]}</span><span class="s1">x</span><span class="si">{output[2]}</span><span class="s1">x{int((k-3)/2)}.h5&#39;</span></div>
+
+
+<div class="viewcode-block" id="epoch_publishing_fn_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.main.epoch_publishing_fn_from">[docs]</a><span class="k">def</span> <span class="nf">epoch_publishing_fn_from</span><span class="p">(</span><span class="n">val_X</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">period</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Creates a function to publish state of model during training</span>
+
+<span class="sd">    :param val_X: validation set input sequences</span>
+<span class="sd">    :param model: the training model</span>
+<span class="sd">    :param index: the dataset index</span>
+<span class="sd">    :param period: the frequency to publish training data at</span>
+<span class="sd">    :return: the function</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">fraction</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_X</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_epoch_end</span><span class="p">(</span><span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">logs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+
+        <span class="n">errors</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y_hat</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">val_X</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">val_X</span><span class="p">)):</span>
+            <span class="n">sound_hat</span> <span class="o">=</span> <span class="n">most_likely_sequence</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">inv_phone</span><span class="p">)</span>
+
+            <span class="n">word</span> <span class="o">=</span> <span class="n">decoded</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">inv_letter</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">sounds</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">word_to_sounds</span><span class="p">[</span><span class="n">word</span><span class="p">]</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="o">+</span><span class="p">(</span><span class="n">sound_hat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sounds</span><span class="p">)</span>
+
+            <span class="n">errors</span> <span class="o">+=</span> <span class="n">error</span>
+
+        <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="n">period</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;[</span><span class="si">{epoch:04d}</span><span class="s1">] WER [{fraction * errors:6.2f}], val. loss [</span><span class="si">{logs[&quot;val_loss&quot;]:1.5f}</span><span class="s1">]&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fraction</span> <span class="o">*</span> <span class="n">errors</span>
+
+    <span class="k">return</span> <span class="n">on_epoch_end</span></div>
+
+
+<div class="viewcode-block" id="end_publishing_fn_from"><a class="viewcode-back" href="../../britfoner.html#britfoner.main.end_publishing_fn_from">[docs]</a><span class="k">def</span> <span class="nf">end_publishing_fn_from</span><span class="p">(</span><span class="n">val_X</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Creates a function to publish state of model after training is finished</span>
+
+<span class="sd">    :param val_X: validation set input sequences</span>
+<span class="sd">    :param model: the training model</span>
+<span class="sd">    :param index: the dataset index</span>
+<span class="sd">    :return: the function</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">fraction</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_X</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_train_end</span><span class="p">(</span><span class="n">logs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;errors:&#39;</span><span class="p">)</span>
+
+        <span class="n">errors</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y_hat</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">val_X</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">val_X</span><span class="p">)):</span>
+
+            <span class="n">sound_hat</span> <span class="o">=</span> <span class="n">most_likely_sequence</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">inv_phone</span><span class="p">)</span>
+
+            <span class="n">word</span> <span class="o">=</span> <span class="n">decoded</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">inv_letter</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">sounds</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">word_to_sounds</span><span class="p">[</span><span class="n">word</span><span class="p">]</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="o">+</span><span class="p">(</span><span class="n">sound_hat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sounds</span><span class="p">)</span>
+
+            <span class="n">errors</span> <span class="o">+=</span> <span class="n">error</span>
+
+            <span class="k">if</span> <span class="n">error</span><span class="p">:</span>  <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">{&quot;&quot;.join(word)}</span><span class="se">\t</span><span class="s1">{&quot; &quot;.join(sound_hat)}&#39;</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;WER [{fraction*errors:0.2f}]&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">on_train_end</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main_seq_2_seq</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">britfoner</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../britfoner.html">britfoner package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../britfoner.html">britfoner</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

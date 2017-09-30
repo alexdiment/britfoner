@@ -1,0 +1,646 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>britfoner package &#8212; britfoner  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to britfoner’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="britfoner-package">
+<h1>britfoner package<a class="headerlink" href="#britfoner-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-britfoner.IO">
+<span id="britfoner-io-module"></span><h2>britfoner.IO module<a class="headerlink" href="#module-britfoner.IO" title="Permalink to this headline">¶</a></h2>
+<p>Functions to convert input/output data into tensors and viceversa</p>
+<dl class="function">
+<dt id="britfoner.IO.all_encoded">
+<code class="descclassname">britfoner.IO.</code><code class="descname">all_encoded</code><span class="sig-paren">(</span><em>seqs: typing.List[typing.Tuple[str, ...]], alphabet: typing.Dict[str, int], reverse=False</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/britfoner/IO.html#all_encoded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.all_encoded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encodes a list of strings into a tensor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>seqs</strong> – alist of sequences as string tuples</li>
+<li><strong>alphabet</strong> – a mapping from character to index</li>
+<li><strong>reverse</strong> – true if the sequences should be encoded in reverse</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a 3-D tensor as a 3-D numpy array index by sequence, position and vector component</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.bounded">
+<code class="descclassname">britfoner.IO.</code><code class="descname">bounded</code><span class="sig-paren">(</span><em>seq: typing.Tuple[str, ...], max_length: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/IO.html#bounded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.bounded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bounds sequence to help model understand where the it starts and where it ends. Addionally
+it pads the sequence if its longer than <code class="xref py py-const docutils literal"><span class="pre">MAX_LENGTH</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>seq</strong> – sequence to be bounded</li>
+<li><strong>max_length</strong> – maximum sequence length</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a sequence with a prefix a suffix and a padding at the end</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.dataset_from">
+<code class="descclassname">britfoner.IO.</code><code class="descname">dataset_from</code><span class="sig-paren">(</span><em>src: str</em>, <em>val_size: float = 0.05</em>, <em>random_state: int = 42</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[typing.Tuple[[numpy.ndarray, numpy.ndarray, numpy.ndarray], numpy.ndarray], britfoner.Index]<a class="reference internal" href="_modules/britfoner/IO.html#dataset_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.dataset_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dataset read in from the the given file name. The dataset
+consists of rain/test input-output tensors plus an index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>src</strong> – the file name with the data</li>
+<li><strong>val_size</strong> – the proportion in [0, 1] of data points used for validation</li>
+<li><strong>random_state</strong> – the seed for picking the validation set</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a dataset consisting of tensors and index, as a tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.decoded">
+<code class="descclassname">britfoner.IO.</code><code class="descname">decoded</code><span class="sig-paren">(</span><em>seq_vec: numpy.ndarray, inv_alphabet: typing.Tuple[str, ...], reverse=False</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[str, ...]<a class="reference internal" href="_modules/britfoner/IO.html#decoded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.decoded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes a matrix representing a sequence into a tuple</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>seq_vec</strong> – sequence as 2D numpy array</li>
+<li><strong>inv_alphabet</strong> – sorted alphabet</li>
+<li><strong>reverse</strong> – True if the string should be reversed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the decoded sequence as a tuple of strings</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.dictionary_from">
+<code class="descclassname">britfoner.IO.</code><code class="descname">dictionary_from</code><span class="sig-paren">(</span><em>src: str</em><span class="sig-paren">)</span> &#x2192; typing.Dict[typing.Tuple[str, ...], typing.Set[typing.Tuple[str, ...]]]<a class="reference internal" href="_modules/britfoner/IO.html#dictionary_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.dictionary_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>#
+Returns a mapping from word to pronunciation(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>src</strong> – file to read the dictionary data from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a map of words to their pronunciations as Dict[Seq, Set[Seq]]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.index_from">
+<code class="descclassname">britfoner.IO.</code><code class="descname">index_from</code><span class="sig-paren">(</span><em>words: typing.Iterable[typing.Tuple[str, ...]], sounds: typing.Iterable[typing.Tuple[str, ...]]</em><span class="sig-paren">)</span> &#x2192; britfoner.Index<a class="reference internal" href="_modules/britfoner/IO.html#index_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.index_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs an index given the input and output sequences</p>
+<p>An index contains a number of datastructures necessary to encode and decode
+the data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>words</strong> – the input sequences</li>
+<li><strong>sounds</strong> – the output sequences</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an Index</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.indexes_from">
+<code class="descclassname">britfoner.IO.</code><code class="descname">indexes_from</code><span class="sig-paren">(</span><em>dictionary: typing.Dict[typing.Tuple[str, ...], typing.Set[typing.Tuple[str, ...]]]</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[typing.Dict[str, int], typing.Tuple[str, ...]]<a class="reference internal" href="_modules/britfoner/IO.html#indexes_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.indexes_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>#
+builds input and inverted output indexes for converting from/to text to vectors</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dictionary</strong> – a word to proununciations mapping</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an input and an inverted output index as a tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.items_from">
+<code class="descclassname">britfoner.IO.</code><code class="descname">items_from</code><span class="sig-paren">(</span><em>src: str</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[typing.Iterable[typing.Tuple[str, ...]], typing.Iterable[typing.Tuple[str, ...]]]<a class="reference internal" href="_modules/britfoner/IO.html#items_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.items_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a sequence of inputs and outputs from a file
+The file’s format should be a line per data point, the input sequence made up
+of symbols with no separator, followed by a comma, followed by the white-space
+separated output sequence</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>src</strong> – the data file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a tuple with the input and output sequences</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.model_from">
+<code class="descclassname">britfoner.IO.</code><code class="descname">model_from</code><span class="sig-paren">(</span><em>src: str</em><span class="sig-paren">)</span> &#x2192; keras.engine.training.Model<a class="reference internal" href="_modules/britfoner/IO.html#model_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.model_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>#
+loads sequence to sequence model from file
+:param src: model file name
+:return: a model</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.padded">
+<code class="descclassname">britfoner.IO.</code><code class="descname">padded</code><span class="sig-paren">(</span><em>seqs: typing.Iterable[typing.Tuple[str, ...]]</em><span class="sig-paren">)</span> &#x2192; typing.List[typing.Tuple[str, ...]]<a class="reference internal" href="_modules/britfoner/IO.html#padded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.padded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pads all sequences to the length of the longest</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>seqs</strong> – the raw sequences</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the padded sequences</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.padding_for">
+<code class="descclassname">britfoner.IO.</code><code class="descname">padding_for</code><span class="sig-paren">(</span><em>width: int</em>, <em>max_width: int</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[str, ...]<a class="reference internal" href="_modules/britfoner/IO.html#padding_for"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.padding_for" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds padding for sequences longer than <code class="xref py py-const docutils literal"><span class="pre">MAX_LENGTH</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>width</strong> – length of sequence</li>
+<li><strong>max_width</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple containing 0 to <code class="docutils literal"><span class="pre">max_width</span></code> repetitions of the padding symbol</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.IO.to_tuple">
+<code class="descclassname">britfoner.IO.</code><code class="descname">to_tuple</code><span class="sig-paren">(</span><em>entry: str</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[typing.Tuple[str, ...], typing.Tuple[str, ...]]<a class="reference internal" href="_modules/britfoner/IO.html#to_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.IO.to_tuple" title="Permalink to this definition">¶</a></dt>
+<dd><p>#
+Converts a string containing an input, output sequence pair into a tuple of seqeunces
+:param entry: the string containing the entry
+:return: a tuple containing an input and an output sequence</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-britfoner.api">
+<span id="britfoner-api-module"></span><h2>britfoner.api module<a class="headerlink" href="#module-britfoner.api" title="Permalink to this headline">¶</a></h2>
+<p>Public api</p>
+<dl class="function">
+<dt id="britfoner.api.pronounce">
+<code class="descclassname">britfoner.api.</code><code class="descname">pronounce</code><span class="sig-paren">(</span><em>word: str</em><span class="sig-paren">)</span> &#x2192; typing.Set[typing.Tuple[str, ...]]<a class="reference internal" href="_modules/britfoner/api.html#pronounce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.api.pronounce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives British English pronunciation(s) of word as symbols in the International Phonetic Alphabet</p>
+<p>Strings longer than 18 characters are given no pronunciations</p>
+<p><em>input is not validated</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>word</strong> – a non-empty String of length 18 at most, containing characters in [A-Za-z’ ]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a set of string tuples representing the pronunciations of <code class="docutils literal"><span class="pre">word</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-britfoner.g2p">
+<span id="britfoner-g2p-module"></span><h2>britfoner.g2p module<a class="headerlink" href="#module-britfoner.g2p" title="Permalink to this headline">¶</a></h2>
+<p>Sequence to sequence model building and training</p>
+<dl class="class">
+<dt id="britfoner.g2p.WER_ModelCheckpoint">
+<em class="property">class </em><code class="descclassname">britfoner.g2p.</code><code class="descname">WER_ModelCheckpoint</code><span class="sig-paren">(</span><em>filepath</em>, <em>monitor='val_loss'</em>, <em>verbose=0</em>, <em>save_best_only=False</em>, <em>save_weights_only=False</em>, <em>mode='auto'</em>, <em>period=1</em>, <em>callback=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/g2p.html#WER_ModelCheckpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.g2p.WER_ModelCheckpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">keras.callbacks.ModelCheckpoint</span></code></p>
+<p>Ensures saving of training model is done every time the Word Error Rate (WER)
+improves. This allows the final saved model to be the best one according to the
+WER metric</p>
+<dl class="method">
+<dt id="britfoner.g2p.WER_ModelCheckpoint.on_epoch_end">
+<code class="descname">on_epoch_end</code><span class="sig-paren">(</span><em>epoch</em>, <em>logs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/g2p.html#WER_ModelCheckpoint.on_epoch_end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.g2p.WER_ModelCheckpoint.on_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.g2p.attention_g2p_model_from">
+<code class="descclassname">britfoner.g2p.</code><code class="descname">attention_g2p_model_from</code><span class="sig-paren">(</span><em>input_dim: int</em>, <em>input_length: int</em>, <em>output_dim: int</em>, <em>output_length: int</em>, <em>hidden_n: int = 256</em>, <em>dropout=0.1</em>, <em>depth=1</em><span class="sig-paren">)</span> &#x2192; &lt;function AttentionSeq2Seq at 0x000001B38B0BE730&gt;<a class="reference internal" href="_modules/britfoner/g2p.html#attention_g2p_model_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.g2p.attention_g2p_model_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a sequence to sequence model with attention</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_dim</strong> – number of symbols in input alphabet (including end, start and padding)</li>
+<li><strong>input_length</strong> – length of longest input sequence</li>
+<li><strong>output_dim</strong> – number of symbols in output alphabet (including end, start and padding)</li>
+<li><strong>output_length</strong> – length of longest output sequence</li>
+<li><strong>hidden_n</strong> – number of hidden units</li>
+<li><strong>dropout</strong> – dropout rate</li>
+<li><strong>depth</strong> – depth of rnn stack</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the created, compiled model</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.g2p.most_likely_sequence">
+<code class="descclassname">britfoner.g2p.</code><code class="descname">most_likely_sequence</code><span class="sig-paren">(</span><em>y_hat: numpy.ndarray, inv_alphabet: typing.Tuple[str, ...]</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[str, ...]<a class="reference internal" href="_modules/britfoner/g2p.html#most_likely_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.g2p.most_likely_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the most likely sequence for the given prediced output vector. The decoding
+algorithm is greedy, picking the highest scored symbol in the output</p>
+<p>Any padding symbols are removed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>y_hat</strong> – the predicted output vector</li>
+<li><strong>inv_alphabet</strong> – a sorted list of symbols representing the output alphabet</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the predicted output sequence</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.g2p.train_g2p">
+<code class="descclassname">britfoner.g2p.</code><code class="descname">train_g2p</code><span class="sig-paren">(</span><em>model: &lt;function AttentionSeq2Seq at 0x000001B38B0BE730&gt;, train_set: typing.Tuple[numpy.ndarray, numpy.ndarray], val_set: typing.Tuple[numpy.ndarray, numpy.ndarray], batch_n: int = 128, epochs: int = 100, callbacks: typing.Callable = None</em><span class="sig-paren">)</span> &#x2192; &lt;function AttentionSeq2Seq at 0x000001B38B0BE730&gt;<a class="reference internal" href="_modules/britfoner/g2p.html#train_g2p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.g2p.train_g2p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains given model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>model</strong> – sequence to sequence model</li>
+<li><strong>train_set</strong> – training data as X, Y tuple of tensors</li>
+<li><strong>val_set</strong> – validation data as X, Y tuple of tensors</li>
+<li><strong>batch_n</strong> – batch size</li>
+<li><strong>epochs</strong> – number of epochs</li>
+<li><strong>callbacks</strong> – callbacks for keras training</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">trained model</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-britfoner.main">
+<span id="britfoner-main-module"></span><h2>britfoner.main module<a class="headerlink" href="#module-britfoner.main" title="Permalink to this headline">¶</a></h2>
+<p>script to train model</p>
+<dl class="function">
+<dt id="britfoner.main.end_publishing_fn_from">
+<code class="descclassname">britfoner.main.</code><code class="descname">end_publishing_fn_from</code><span class="sig-paren">(</span><em>val_X</em>, <em>model</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/main.html#end_publishing_fn_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.main.end_publishing_fn_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a function to publish state of model after training is finished</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>val_X</strong> – validation set input sequences</li>
+<li><strong>model</strong> – the training model</li>
+<li><strong>index</strong> – the dataset index</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the function</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.main.epoch_publishing_fn_from">
+<code class="descclassname">britfoner.main.</code><code class="descname">epoch_publishing_fn_from</code><span class="sig-paren">(</span><em>val_X</em>, <em>model</em>, <em>index</em>, <em>period=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/main.html#epoch_publishing_fn_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.main.epoch_publishing_fn_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a function to publish state of model during training</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>val_X</strong> – validation set input sequences</li>
+<li><strong>model</strong> – the training model</li>
+<li><strong>index</strong> – the dataset index</li>
+<li><strong>period</strong> – the frequency to publish training data at</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the function</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.main.main_seq_2_seq">
+<code class="descclassname">britfoner.main.</code><code class="descname">main_seq_2_seq</code><span class="sig-paren">(</span><em>data_src: str = 'D:\\projects\\g2p\\britfone.main.no-stress.2.0.1.csv'</em>, <em>model_src: str = None</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[keras.engine.training.Model, str]<a class="reference internal" href="_modules/britfoner/main.html#main_seq_2_seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.main.main_seq_2_seq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates, trains and saves a sequence to sequence model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data_src</strong> – file containing data</li>
+<li><strong>model_src</strong> – file containing previously trained model, to start the training from</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the trained model together withe file name it has been saved to</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="britfoner.main.model_name_from">
+<code class="descclassname">britfoner.main.</code><code class="descname">model_name_from</code><span class="sig-paren">(</span><em>model: typing.Any</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/britfoner/main.html#model_name_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.main.model_name_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates file name to save model to</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>model</strong> – the sequence to sequence model</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-britfoner.test_IO">
+<span id="britfoner-test-io-module"></span><h2>britfoner.test_IO module<a class="headerlink" href="#module-britfoner.test_IO" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="britfoner.test_IO.test_builds_index_from_items">
+<code class="descclassname">britfoner.test_IO.</code><code class="descname">test_builds_index_from_items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/test_IO.html#test_builds_index_from_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.test_IO.test_builds_index_from_items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="britfoner.test_IO.test_decodes_matrix_into_sequence">
+<code class="descclassname">britfoner.test_IO.</code><code class="descname">test_decodes_matrix_into_sequence</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/test_IO.html#test_decodes_matrix_into_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.test_IO.test_decodes_matrix_into_sequence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="britfoner.test_IO.test_encodes_sequences_into_3D_tensor">
+<code class="descclassname">britfoner.test_IO.</code><code class="descname">test_encodes_sequences_into_3D_tensor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/test_IO.html#test_encodes_sequences_into_3D_tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.test_IO.test_encodes_sequences_into_3D_tensor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="britfoner.test_IO.test_reads_in_csv_as_sorted_tuples">
+<code class="descclassname">britfoner.test_IO.</code><code class="descname">test_reads_in_csv_as_sorted_tuples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/test_IO.html#test_reads_in_csv_as_sorted_tuples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.test_IO.test_reads_in_csv_as_sorted_tuples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-britfoner.test_api">
+<span id="britfoner-test-api-module"></span><h2>britfoner.test_api module<a class="headerlink" href="#module-britfoner.test_api" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="britfoner.test_api.test_gives_no_pronunciations_for_words_longer_than_18_chars">
+<code class="descclassname">britfoner.test_api.</code><code class="descname">test_gives_no_pronunciations_for_words_longer_than_18_chars</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/test_api.html#test_gives_no_pronunciations_for_words_longer_than_18_chars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.test_api.test_gives_no_pronunciations_for_words_longer_than_18_chars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="britfoner.test_api.test_gives_pronunciation_of_word_not_in_dictionary">
+<code class="descclassname">britfoner.test_api.</code><code class="descname">test_gives_pronunciation_of_word_not_in_dictionary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/test_api.html#test_gives_pronunciation_of_word_not_in_dictionary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.test_api.test_gives_pronunciation_of_word_not_in_dictionary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="britfoner.test_api.test_gives_pronunciations_of_word_in_dictionary">
+<code class="descclassname">britfoner.test_api.</code><code class="descname">test_gives_pronunciations_of_word_in_dictionary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/britfoner/test_api.html#test_gives_pronunciations_of_word_in_dictionary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#britfoner.test_api.test_gives_pronunciations_of_word_in_dictionary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-britfoner">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-britfoner" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="britfoner.Index">
+<em class="property">class </em><code class="descclassname">britfoner.</code><code class="descname">Index</code><span class="sig-paren">(</span><em>x_dim</em>, <em>x_n</em>, <em>y_dim</em>, <em>y_n</em>, <em>letter</em>, <em>inv_letter</em>, <em>phone</em>, <em>inv_phone</em>, <em>word_to_sounds</em><span class="sig-paren">)</span><a class="headerlink" href="#britfoner.Index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="britfoner.Index.inv_letter">
+<code class="descname">inv_letter</code><a class="headerlink" href="#britfoner.Index.inv_letter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="britfoner.Index.inv_phone">
+<code class="descname">inv_phone</code><a class="headerlink" href="#britfoner.Index.inv_phone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="britfoner.Index.letter">
+<code class="descname">letter</code><a class="headerlink" href="#britfoner.Index.letter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="britfoner.Index.phone">
+<code class="descname">phone</code><a class="headerlink" href="#britfoner.Index.phone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="britfoner.Index.word_to_sounds">
+<code class="descname">word_to_sounds</code><a class="headerlink" href="#britfoner.Index.word_to_sounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="britfoner.Index.x_dim">
+<code class="descname">x_dim</code><a class="headerlink" href="#britfoner.Index.x_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="britfoner.Index.x_n">
+<code class="descname">x_n</code><a class="headerlink" href="#britfoner.Index.x_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="britfoner.Index.y_dim">
+<code class="descname">y_dim</code><a class="headerlink" href="#britfoner.Index.y_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="britfoner.Index.y_n">
+<code class="descname">y_n</code><a class="headerlink" href="#britfoner.Index.y_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">britfoner</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">britfoner package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-britfoner.IO">britfoner.IO module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-britfoner.api">britfoner.api module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-britfoner.g2p">britfoner.g2p module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-britfoner.main">britfoner.main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-britfoner.test_IO">britfoner.test_IO module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-britfoner.test_api">britfoner.test_api module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-britfoner">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to britfoner’s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/britfoner.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
