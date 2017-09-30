@@ -1,5 +1,8 @@
 ## Change Log
 
+### v1.0.2 (2017/09/30 18:33 +00:00)
+- [3dbe101](https://github.com/JoseLlarena/britfoner/commit/3dbe101c0655bd7380bc749a11cc6191ea6f2779) doc: add changelog (@JoseLlarena)
+
 ### v1.0.1 (2017/09/30 18:29 +00:00)
 - [95678da](https://github.com/JoseLlarena/britfoner/commit/95678da562d83c7dc3cab71e2cc85d04658848bd) deleted github license (@JoseLlarena)
 - [b893f74](https://github.com/JoseLlarena/britfoner/commit/b893f74dfffdcdfe9b3df77d92bbe3caa40eac1b) Merge branch 'master' of https://github.com/JoseLlarena/britfoner (@JoseLlarena)
