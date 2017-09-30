@@ -1,5 +1,9 @@
 ## Change Log
 
+### v1.0.10 (2017/09/30 19:47 +00:00)
+- [ab1f0aa](https://github.com/JoseLlarena/britfoner/commit/ab1f0aa46d9f755a17bb7c3033540d9d831c3931) doc: update changelog (@JoseLlarena)
+- [8a5679c](https://github.com/JoseLlarena/britfoner/commit/8a5679c4da7c066c100571838cdd3190d0631c76) build:fix: install conda on travis (@JoseLlarena)
+
 ### v1.0.9 (2017/09/30 19:35 +00:00)
 - [8d03ba1](https://github.com/JoseLlarena/britfoner/commit/8d03ba150ac0c95385d6c9ddd5b5203c214f7e7d) doc: update changelog (@JoseLlarena)
 - [f5deb87](https://github.com/JoseLlarena/britfoner/commit/f5deb8752030cac149eba3e87ed0314a2c713ba9) build-fix: undo adding of scipy to setup.py; add scipy install in travis instead (@JoseLlarena)
