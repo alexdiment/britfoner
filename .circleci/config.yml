@@ -36,7 +36,7 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            nosetests
+            nosetests --nologcapture
 
       - store_artifacts:
           path: test-reports
