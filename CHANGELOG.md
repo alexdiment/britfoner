@@ -1,5 +1,9 @@
 ## Change Log
 
+### v1.0.4 (2017/09/30 18:40 +00:00)
+- [af85d24](https://github.com/JoseLlarena/britfoner/commit/af85d2427b9275f5cc08434900ebe9bbe47a2018) doc: update changelog (@JoseLlarena)
+- [a07f8f3](https://github.com/JoseLlarena/britfoner/commit/a07f8f3201dc3668ffb01c6dcd6ef9d0ea6db624) build: fix travis test script (@JoseLlarena)
+
 ### v1.0.3 (2017/09/30 18:36 +00:00)
 - [219b2be](https://github.com/JoseLlarena/britfoner/commit/219b2becf668a27466d812506865472215b7ad1c) doc: update changelog (@JoseLlarena)
 - [306f3ab](https://github.com/JoseLlarena/britfoner/commit/306f3ab6513d2ded35a1f5c736707e37553e6509) fix: missing data files (@JoseLlarena)
