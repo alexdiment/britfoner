@@ -1,5 +1,9 @@
 ## Change Log
 
+### v1.0.12 (2017/09/30 20:20 +00:00)
+- [bdec80d](https://github.com/JoseLlarena/britfoner/commit/bdec80d22593c9d774b568435776556dd89ebde0) doc: update changelog (@JoseLlarena)
+- [93dd437](https://github.com/JoseLlarena/britfoner/commit/93dd437911f31965fe1fb7b2a0f10b108ced89f1) build:fix: circleci folder and config name (@JoseLlarena)
+
 ### v1.0.11 (2017/09/30 20:01 +00:00)
 - [e35225c](https://github.com/JoseLlarena/britfoner/commit/e35225cd1c5be2d30941356ae7e2b275f00578d8) doc: update changelog (@JoseLlarena)
 - [d23882f](https://github.com/JoseLlarena/britfoner/commit/d23882f8953d8527377755e8c71b34cf5ee13420) build:fix: remove travis; add circleci (@JoseLlarena)
