@@ -1,5 +1,9 @@
 ## Change Log
 
+### v1.0.9 (2017/09/30 19:35 +00:00)
+- [8d03ba1](https://github.com/JoseLlarena/britfoner/commit/8d03ba150ac0c95385d6c9ddd5b5203c214f7e7d) doc: update changelog (@JoseLlarena)
+- [f5deb87](https://github.com/JoseLlarena/britfoner/commit/f5deb8752030cac149eba3e87ed0314a2c713ba9) build-fix: undo adding of scipy to setup.py; add scipy install in travis instead (@JoseLlarena)
+
 ### v1.0.8 (2017/09/30 19:31 +00:00)
 - [f029757](https://github.com/JoseLlarena/britfoner/commit/f0297570006392738400d07931d93606e49a10ad) doc: update changelog (@JoseLlarena)
 - [c001c8d](https://github.com/JoseLlarena/britfoner/commit/c001c8d02303a125947b6fc520dbad7561e0f374) buid: add scipy to requires (@JoseLlarena)
