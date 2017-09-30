@@ -1,5 +1,9 @@
 ## Change Log
 
+### v1.0.6 (2017/09/30 19:04 +00:00)
+- [e415417](https://github.com/JoseLlarena/britfoner/commit/e4154179205d49958b10203a7b6769a2ad866a7a) doc: update changelog (@JoseLlarena)
+- [f04d618](https://github.com/JoseLlarena/britfoner/commit/f04d618a27491a65d53f5ca22f3d2739ccc5bf67) build: fix travis install (@JoseLlarena)
+
 ### v1.0.5 (2017/09/30 18:51 +00:00)
 - [b94eae0](https://github.com/JoseLlarena/britfoner/commit/b94eae06c54a807fae28c77908633531edcddb6f) doc: update changelog (@JoseLlarena)
 - [9693d21](https://github.com/JoseLlarena/britfoner/commit/9693d2154fbdd192870bac67b3883f7107be6aef) build: fix travis install (@JoseLlarena)
