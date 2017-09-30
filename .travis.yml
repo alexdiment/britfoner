@@ -8,6 +8,10 @@ script:
 
   - nosetests
 
+before_install:
+
+  - pip install scipy
+
 install:
   - python setup.py install
 
