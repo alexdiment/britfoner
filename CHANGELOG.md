@@ -1,5 +1,9 @@
 ## Change Log
 
+### v1.0.8 (2017/09/30 19:31 +00:00)
+- [f029757](https://github.com/JoseLlarena/britfoner/commit/f0297570006392738400d07931d93606e49a10ad) doc: update changelog (@JoseLlarena)
+- [c001c8d](https://github.com/JoseLlarena/britfoner/commit/c001c8d02303a125947b6fc520dbad7561e0f374) buid: add scipy to requires (@JoseLlarena)
+
 ### v1.0.7 (2017/09/30 19:24 +00:00)
 - [0a3dc33](https://github.com/JoseLlarena/britfoner/commit/0a3dc33ad6eb0cf729761689f0a917d485ae19c4) doc: update changelog (@JoseLlarena)
 - [15de17c](https://github.com/JoseLlarena/britfoner/commit/15de17c4a75b55f4ef42218c3f1a39104fba162e) build: fix travis language (@JoseLlarena)
