@@ -1,5 +1,9 @@
 ## Change Log
 
+### v1.0.3 (2017/09/30 18:36 +00:00)
+- [219b2be](https://github.com/JoseLlarena/britfoner/commit/219b2becf668a27466d812506865472215b7ad1c) doc: update changelog (@JoseLlarena)
+- [306f3ab](https://github.com/JoseLlarena/britfoner/commit/306f3ab6513d2ded35a1f5c736707e37553e6509) fix: missing data files (@JoseLlarena)
+
 ### v1.0.2 (2017/09/30 18:33 +00:00)
 - [3dbe101](https://github.com/JoseLlarena/britfoner/commit/3dbe101c0655bd7380bc749a11cc6191ea6f2779) doc: add changelog (@JoseLlarena)
 
