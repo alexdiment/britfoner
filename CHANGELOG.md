@@ -1,5 +1,9 @@
 ## Change Log
 
+### v1.0.11 (2017/09/30 20:01 +00:00)
+- [e35225c](https://github.com/JoseLlarena/britfoner/commit/e35225cd1c5be2d30941356ae7e2b275f00578d8) doc: update changelog (@JoseLlarena)
+- [d23882f](https://github.com/JoseLlarena/britfoner/commit/d23882f8953d8527377755e8c71b34cf5ee13420) build:fix: remove travis; add circleci (@JoseLlarena)
+
 ### v1.0.10 (2017/09/30 19:47 +00:00)
 - [ab1f0aa](https://github.com/JoseLlarena/britfoner/commit/ab1f0aa46d9f755a17bb7c3033540d9d831c3931) doc: update changelog (@JoseLlarena)
 - [8a5679c](https://github.com/JoseLlarena/britfoner/commit/8a5679c4da7c066c100571838cdd3190d0631c76) build:fix: install conda on travis (@JoseLlarena)
