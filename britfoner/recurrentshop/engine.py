@@ -2,7 +2,10 @@ from keras.layers import *
 from keras.models import Model
 from keras import initializers
 from .backend import rnn, learning_phase_scope
-from keras.engine.topology import Node, _collect_previous_mask, _collect_input_shape
+try:
+    from keras.engine.topology import Node, _collect_previous_mask, _collect_input_shape
+except ImportError:
+    from keras.engine.base_layer import Node, _collect_previous_mask, _collect_input_shape
 import inspect
 
 
@@ -837,7 +840,12 @@ class RecurrentModel(Recurrent):
                     self._optional_input_placeholders[name] = self._get_optional_input_placeholder()
             return self._optional_input_placeholders[name]
         if num == 1:
-            optional_input_placeholder = _to_list(_OptionalInputPlaceHolder().inbound_nodes[0].output_tensors)[0]
+            # newer keras compatibility
+            try:
+                optional_input_placeholder = _to_list(_OptionalInputPlaceHolder().inbound_nodes[0].output_tensors)[0]
+            except AttributeError:
+                optional_input_placeholder = _to_list(_OptionalInputPlaceHolder()._inbound_nodes[0].output_tensors)[0]
+
             assert self._is_optional_input_placeholder(optional_input_placeholder)
             return optional_input_placeholder
         else:

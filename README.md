@@ -1,13 +1,12 @@
+Forked from https://github.com/JoseLlarena/britfoner. Added modifications for newer keras compatibility (>2.2.2) by alexdiment.
 
 <h1>britfoner<br/></h1><br/>
 
 <p>automated pronunciation for British English with Keras+Tensorflow</p><br/>
 
-<p>
-  <a href="https://travis-ci.org/JoseLlarena/britfoner">
-    <img alt="Travis Status" src="https://travis-ci.org/JoseLlarena/britfoner.svg?branch=master">
-  </a>
-<p><br/>
+ 
+  [![CircleCI](https://circleci.com/gh/JoseLlarena/britfoner.svg?style=svg)](https://circleci.com/gh/JoseLlarena/britfoner)
+ <br/>
 
 _Britfoner_ is an api for translating English words to their phonetic form (in British English). It uses
 phonetic dictionary [_Britfone_](https://github.com/JoseLlarena/Britfone) as a first lookup and a Keras+Tensorflow
