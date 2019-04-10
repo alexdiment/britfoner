@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='britfoner',
-    version='1.0.1',
+    version='1.0.2',
     description='British English pronunciation with Keras+Tensorflow',
     author='Jose Llarena',
     author_email='jose.llarena@gmail.com',
